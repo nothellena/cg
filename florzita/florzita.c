@@ -81,7 +81,7 @@ void _go(unsigned char key, int x, int y)
 
 void _flower(){
     glClear(GL_COLOR_BUFFER_BIT);
-        for (int i = 0; i < 6; i = i + 2)
+    for (int i = 0; i < 6; i = i + 2)
     {
 
         glBegin(GL_TRIANGLES);
