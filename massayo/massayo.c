@@ -50,15 +50,19 @@ void init (void)
     glLoadIdentity ();
 }
 
+// Função que atualiza a posição dos corpos celestes
 void _move (int value)
 {
 
-
+  /* O loop para atualizar a posição dos astros 
+  inicia com i = 1, uma vez que o Sol (orbs[0]) 
+  não muda de posição.*/
   for (int i = 1; i < n_orbs; i++)
     {
       if (orbs[i].angle + orbs[i].grow < 2)
 	    {
-        // Caso seja a lua 6 
+        // Caso seja a lua 6, que orbita o planeta 3
+      
 	      if (i == 6)
 	      {
 	      orbs[i].x = orbs[3].x;
@@ -66,7 +70,7 @@ void _move (int value)
 	      orbs[i].z = sin (orbs[i].angle * PI) * orbs[i].orb_radius - 8.0;
 
 	      }
-        // Caso seja a lua 7
+        // Caso seja a lua 7, que orbita o planeta 3
 	      else if (i == 7)
         {
           orbs[i].x = orbs[3].x - sin (orbs[i].angle * PI) * orbs[i].orb_radius;
@@ -74,22 +78,25 @@ void _move (int value)
           orbs[i].z = cos (orbs[i].angle * PI) * orbs[i].orb_radius - 7.7;
 
         }
+        // Caso seja um planeta
         else
         {
           orbs[i].x = sin (orbs[i].angle * PI) * orbs[i].orb_radius;
           orbs[i].y = cos (orbs[i].angle * PI) * orbs[i].orb_radius;
         }
 
+        // Atualiza do ângulo
 	      orbs[i].angle += orbs[i].grow;
 	  }
-     else
+    // Reinicia o ciclo, caso  orbs[i].angle += orbs[i].grow >= 2
+     else 
 	    orbs[i].angle = 0;
   }
 
   glutPostRedisplay ();
 }
 
-
+// Posiciona/Desenha os nomes dos corpos celestes na tela
 void _names ()
 {
   for (int i = 0; i < n_orbs; i++)
@@ -112,6 +119,7 @@ void _names ()
 }
 
 
+// Keyboard function para movimentar os corpos celestes
 void _go (unsigned char key, int x, int y)
 {
 
@@ -120,6 +128,7 @@ void _go (unsigned char key, int x, int y)
 
 }
 
+// Desenha 150 estrelas em posições pseudo-aleatórias
 void _drawStars(void){
 
 
@@ -138,6 +147,7 @@ void _drawStars(void){
 
 }
 
+// Desenha os corpos celestes
 void _drawSystem (void)
 {
 
@@ -159,6 +169,8 @@ void _drawSystem (void)
 
 }
 
+
+//  Desenha a trajetória de cada planeta ao redor do sol
 void _drawCircle (void)
 {
   for (int j = 1; j < n_orbs - 2; j++)
