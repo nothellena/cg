@@ -6,29 +6,37 @@
 
 #define PI 3.1415
 
-#define COORD_TEXTURA_PLANO 1.0
-#define COORD_TEXTURA_AVIAO 1.0
-#define COR_DO_PLANO 0.52,0.52,0.78,1.0
-#define COR_DO_AVIAO 0.3,0.52,0.18,1.0
+#define COORD_tex_airplane 1.0
+#define COR_DO_PLANO 1.0,1.0,1.0,1.0
+#define COR_DO_AVIAO 1.0,1.0,1.0,1.0
 #define TEXTURA_DO_PLANO "mcz.png"
 #define TEXTURA_DO_AVIAO "camuflagem.png"
 
-GLfloat adjust_factor = 50;
-GLint WIDTH =600;
+GLfloat ambient[] = {0.5,0.5,0.5,1.0}; 
+GLfloat diffuse[] = {0.8,0.8,0.8,1.0};
+GLfloat light_position[] = {0.5, 2.0,0.5, 1.0};
+GLfloat specular[] = {1.0, 1.0, 1.0, 1.0};
+GLfloat spec_material[] = {1.0,1.0,1.0,1.0}; 
+GLint shininess = 90;
+
+GLint WIDTH =800;
 GLint HEIGHT=600;
 
+GLfloat adjust_factor = 50;
 GLfloat obs[3]={0.0,2.0/adjust_factor,0.0};
 GLfloat look[3]={0.0,1.0/adjust_factor,0.0};
-GLuint  textura_plano;
-GLuint  textura_aviao;
+GLuint  tex_plane;
+GLuint  tex_airplane;
 
 GLshort texturas=1;
-GLfloat tetaxz=0;
-GLfloat raioxz=6;
+GLfloat txz=0;
+GLfloat xz=6;
 GLuint  jato;
-GLfloat dist = 0;
+
 int rot_angle = 0;
+GLfloat dist = 0;
 GLfloat rad;
+
 GLfloat asa[][3]={
     {-4.0/adjust_factor,0.0,0.0},
     {+4.0/adjust_factor,0.0,0.0},
@@ -50,12 +58,26 @@ GLfloat ctp[4][2]={
 };
 
 GLfloat cta[4][2]={
-  {-COORD_TEXTURA_AVIAO,-COORD_TEXTURA_AVIAO},
-  {+COORD_TEXTURA_AVIAO,-COORD_TEXTURA_AVIAO},
-  {+COORD_TEXTURA_AVIAO,+COORD_TEXTURA_AVIAO},
-  {-COORD_TEXTURA_AVIAO,+COORD_TEXTURA_AVIAO}
+  {-COORD_tex_airplane,-COORD_tex_airplane},
+  {+COORD_tex_airplane,-COORD_tex_airplane},
+  {+COORD_tex_airplane,+COORD_tex_airplane},
+  {-COORD_tex_airplane,+COORD_tex_airplane}
 };
 
+void ilum(void){
+
+    glShadeModel (GL_SMOOTH);
+    glMaterialfv (GL_FRONT,GL_SPECULAR, spec_material);
+    glMateriali (GL_FRONT,GL_SHININESS,shininess);
+    glLightModelfv (GL_LIGHT_MODEL_AMBIENT, ambient);
+
+    glLightfv (GL_LIGHT0, GL_AMBIENT, ambient); 
+
+    glLightfv (GL_LIGHT0, GL_DIFFUSE, diffuse );
+    glLightfv (GL_LIGHT0, GL_SPECULAR, specular);
+    glLightfv (GL_LIGHT0, GL_POSITION, light_position);
+
+}
 
 void reshape(int width, int height){
   WIDTH=width;
@@ -67,14 +89,14 @@ void reshape(int width, int height){
   glMatrixMode(GL_MODELVIEW);
 }
 
-void compoe_jato(void){
+void _drawAirplane(void){
   GLUquadricObj *quadric;
 
   /* inicia a composicao do jato */
   jato = glGenLists(1);
   glNewList(jato, GL_COMPILE);
 
-  /* asas */
+  // Asas
   glPushMatrix();
   glTranslatef(dist *sin(rad)/adjust_factor,0,dist * cos(rad)/adjust_factor);
   glRotatef (rot_angle, 0.0, 1.0, 0.0);
@@ -86,12 +108,11 @@ void compoe_jato(void){
   glTexCoord2fv(cta[3]); glVertex3fv(asa[2]);
   glEnd();
   glPopMatrix();
-  
-  /* corpo */
+
+  // Tronco
+  glPushMatrix();
   quadric = gluNewQuadric();
   gluQuadricTexture(quadric, GL_TRUE);
-  
-  glPushMatrix();
   glTranslatef(dist *sin(rad)/adjust_factor,0,dist * cos(rad)/adjust_factor);
   glRotatef (rot_angle, 0.0, 1.0, 0.0);
   glTranslatef(-dist *sin(rad)/adjust_factor,0,-dist * cos(rad)/adjust_factor);
@@ -99,7 +120,7 @@ void compoe_jato(void){
   gluCylinder(quadric, 0.5/adjust_factor, 0.5/adjust_factor, 4.0/adjust_factor, 12, 3);
   glPopMatrix();
 
-  /* nariz */
+  // Bico
   quadric = gluNewQuadric();
   gluQuadricTexture(quadric, GL_TRUE);
   glPushMatrix();
@@ -111,7 +132,7 @@ void compoe_jato(void){
   gluCylinder(quadric, 0.5/adjust_factor, 0.0, 1.5/adjust_factor, 12, 3);
   glPopMatrix();
 
-  /* cauda */
+  // Cauda
   glPushMatrix();
   glTranslatef(dist *sin(rad)/adjust_factor,0,dist * cos(rad)/adjust_factor);
   glRotatef (rot_angle, 0.0, 1.0, 0.0);
@@ -126,10 +147,8 @@ void compoe_jato(void){
   glPopMatrix();
 
 
-  /* cabine do piloto */
-
+  // Vidro
   glPushMatrix();
-
   glTranslatef(dist *sin(rad)/adjust_factor,0.0,dist * cos(rad)/adjust_factor);
   glRotatef (rot_angle, 0.0, 1.0, 0.0);
   glTranslatef(-dist *sin(rad)/adjust_factor,0.0,- dist * cos(rad)/adjust_factor);
@@ -140,7 +159,7 @@ void compoe_jato(void){
   gluSphere(quadric,0.5/adjust_factor,12,12);
   glPopMatrix();
 
-   glEndList();}
+  glEndList();}
 
 void display(void){
   glEnable(GL_DEPTH_TEST);
@@ -148,25 +167,17 @@ void display(void){
   glDepthMask(GL_TRUE);
   glClearColor(1.0,1.0,1.0,1.0);
   glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-  compoe_jato();
+  _drawAirplane();
   glPushMatrix();
 
-  /* calcula a posicao do observador */
-  obs[0]=raioxz*cos(2*PI*tetaxz/360)/adjust_factor;
-  obs[2]=raioxz*sin(2*PI*tetaxz/360)/adjust_factor;
+  obs[0]=xz*cos(2*PI*txz/360)/adjust_factor;
+  obs[2]=xz*sin(2*PI*txz/360)/adjust_factor;
   gluLookAt(obs[0],obs[1],obs[2],look[0],look[1],look[2],0.0,2.0,0.0);
 
-  /* habilita/desabilita uso de texturas*/
-  if(texturas){
-    glEnable(GL_TEXTURE_2D);  
-  }
-  else{
-    glDisable(GL_TEXTURE_2D);
-  }
+  glEnable(GL_TEXTURE_2D);  
 
   glColor4f(COR_DO_PLANO);
-  glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_DECAL);
-  glBindTexture(GL_TEXTURE_2D,textura_plano);
+  glBindTexture(GL_TEXTURE_2D,tex_plane);
    
   glBegin(GL_QUADS);
   glTexCoord2fv(ctp[0]);  glVertex3f(0,0,1.0);
@@ -174,10 +185,10 @@ void display(void){
   glTexCoord2fv(ctp[2]);  glVertex3f(1.0,0,0.0);
   glTexCoord2fv(ctp[3]);  glVertex3f(0.0,0,0.0);
   glEnd();
-  glTranslatef(0.0,0.4,0.0);
+  glTranslatef(0.0,0.2,0.0);
 
   glColor4f(COR_DO_AVIAO);
-  glBindTexture(GL_TEXTURE_2D,textura_aviao);
+  glBindTexture(GL_TEXTURE_2D,tex_airplane);
   glCallList(jato);
 
   glPopMatrix();
@@ -196,11 +207,11 @@ void special(int key, int x, int y){
     glutPostRedisplay();
     break;
   case GLUT_KEY_LEFT:
-    tetaxz=tetaxz+2;
+    txz=txz+2;
     glutPostRedisplay();
     break;
   case GLUT_KEY_RIGHT:
-    tetaxz=tetaxz-2;
+    txz=txz-2;
     glutPostRedisplay();
     break;
   }
@@ -211,38 +222,50 @@ void keyboard(unsigned char key, int x, int y){
   case 27:
     exit(0);
     break;
-  case 't':
-    texturas = !texturas;
+  case 'e':
+    xz++;
     glutPostRedisplay();
     break;
-  case 'r':
-    raioxz=raioxz+1;
-    glutPostRedisplay();
-    break;
-  case 'R':
-    raioxz=raioxz-1;
-    if(raioxz==0){
-      raioxz=1;
+  case 'd':
+    xz--;
+    if(xz==0){
+      xz=1;
     }
     glutPostRedisplay();
     break;
   
   case 'g':
     rot_angle = (rot_angle + 5) % 360;
+
     rad = ((float) rot_angle)/180.0 * PI;
-  //  printf("%d\n", rot_aHEIGHTngle);
-    printf("%f \n", rad) ;
+
+    glutPostRedisplay();
+    break;
+
+  case 'h':
+    rot_angle = (rot_angle - 5) % 360;   
+    rad = ((float) rot_angle)/180.0 * PI;
+
     glutPostRedisplay();
     break;
   
   case 'f':
-  // pra frente
-    // printf("%f \n", dist *sin(rad)) ;
   
-    if ((dist *sin(rad)/adjust_factor >= 0 && dist *sin(rad)/adjust_factor<= 1.2) && (dist *cos(rad)/adjust_factor >= 0 && dist *cos(rad)/adjust_factor <= 1.2 )){
-     
-         printf("%f \n", dist *cos(rad)) ;
-      dist++;
+    if ((dist *sin(rad)/adjust_factor >= 0 && dist *sin(rad)/adjust_factor<= 1.0) && (dist *cos(rad)/adjust_factor >= 0 && dist *cos(rad)/adjust_factor <= 1.0 )){
+      dist+=1.0/adjust_factor;
+    }
+    else{
+      dist=0.0;
+    }
+    
+    glutPostRedisplay();
+    break;
+  
+
+  case 'v':
+
+    if ((dist *sin(rad)/adjust_factor >= 0 && dist *sin(rad)/adjust_factor<= 1.0) && (dist *cos(rad)/adjust_factor >= 0 && dist *cos(rad)/adjust_factor <= 1.0 )){
+      dist-=1.0/adjust_factor;
     }
     else{
       dist=0.0;
@@ -253,18 +276,24 @@ void keyboard(unsigned char key, int x, int y){
   }
 }
 
-void carregar_texturas(void){
-  textura_plano = png_texture_load(TEXTURA_DO_PLANO, NULL, NULL);
-  textura_aviao = png_texture_load(TEXTURA_DO_AVIAO, NULL, NULL);
+void loadTex(void){
+  tex_plane = png_texture_load(TEXTURA_DO_PLANO, NULL, NULL);
+  tex_airplane = png_texture_load(TEXTURA_DO_AVIAO, NULL, NULL);
 }
 
 void init(){
   glEnable(GL_DEPTH_TEST);
   
   glEnable(GL_BLEND);
+    
+  glEnable(GL_COLOR_MATERIAL);
+  glEnable(GL_LIGHTING);  
+  glEnable(GL_LIGHT0);
   glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-  carregar_texturas();
-  compoe_jato();
+  ilum();
+  loadTex();
+  _drawAirplane();
+  
   glEnable(GL_TEXTURE_2D);
 }
 
@@ -274,12 +303,7 @@ int main(int argc,char **argv){
   glutInitWindowSize(WIDTH,HEIGHT);
   glutInit(&argc,argv);
   glutInitDisplayMode(GLUT_RGBA|GLUT_DEPTH|GLUT_DOUBLE|GLUT_ALPHA);
-
-  if(!glutCreateWindow("Avião a jato")) {
-    fprintf(stderr,"Error opening a window.\n");
-    exit(-1);
-  }
-
+  glutCreateWindow ("Voo");
   init();
   
   glutKeyboardFunc(keyboard);
